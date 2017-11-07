@@ -1,0 +1,81 @@
+#!/usr/bin/env node
+
+let fs = require('fs');
+let path = require('path');
+let OrderedDirectoryManager = require('../src');
+let oldir = new OrderedDirectoryManager(fs);
+
+require('yargs')
+  .command(
+    'add [path] [order]',
+    'create and insert a new file/directory',
+    yargs => {
+      yargs
+        .positional('path', {
+          describe: 'path to the new file/directory'
+        })
+        .positional('order', {
+          describe: 'where in the list to insert'
+        });
+    },
+    argv => {
+      let resolved = path.resolve(process.cwd(), argv.path);
+      let dir = path.dirname(resolved);
+      let name = path.basename(resolved);
+      oldir.insertSync(dir, name, argv.order);
+    }
+  )
+  .command(
+    'mv [path] [order]',
+    'move a file/directory',
+    yargs => {
+      yargs
+        .positional('path', {
+          describe: 'path to the existing file/directory'
+        })
+        .positional('order', {
+          describe: 'where in the list to insert'
+        });
+    },
+    argv => {
+      let resolved = path.resolve(process.cwd(), argv.path);
+      let dir = path.dirname(resolved);
+      let name = path.basename(resolved);
+      oldir.moveSync(dir, name, argv.order);
+    }
+  )
+  .command(
+    'rm [path]',
+    'remove a file/directory',
+    yargs => {
+      yargs.positional('path', {
+        describe: 'path to the existing file/directory'
+      });
+    },
+    argv => {
+      let resolved = path.resolve(process.cwd(), argv.path);
+      let dir = path.dirname(resolved);
+      let name = path.basename(resolved);
+      oldir.removeSync(dir, name);
+    }
+  )
+  .command(
+    'fix [path]',
+    'fix the files in the directory',
+    yargs => {
+      yargs
+        .positional('path', {
+          describe: 'path to the directory whose contents are to be fixed'
+        })
+        .boolean('all', {
+          alias: 'a',
+          describe:
+            'should run on all entries in the directory (default false: only ordered)'
+        });
+    },
+    argv => {
+      let resolved = path.resolve(process.cwd(), argv.dir);
+      oldir.fix(resolved, argv.all);
+    }
+  )
+  .help().argv;
